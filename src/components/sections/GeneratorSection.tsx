@@ -180,7 +180,7 @@ function AmuletSVG({ name, date, time, zodiac, element }: {
         letterSpacing="2"
         style={{ fontFamily: 'Montserrat, sans-serif' }}
       >
-        {time ? `✦ ${time} ✦` : '✦ время неизвестно ✦'}
+        {time !== '' ? `✦ ${time} ✦` : '✦ время неизвестно ✦'}
       </text>
 
       {/* СНИЗУ — дата рождения */}
