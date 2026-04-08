@@ -4,6 +4,50 @@ import Icon from '@/components/ui/icon';
 const symbols = ['☽', '☀', '⛤', '∞', 'ᛉ', 'ᚠ', 'ᛏ', '✦', '⊕', '⊗', '⊙', '✧'];
 const intentions = ['Защита', 'Удача', 'Любовь', 'Здоровье', 'Мудрость', 'Богатство', 'Гармония', 'Сила'];
 
+interface ZodiacInfo {
+  sign: string;
+  symbol: string;
+  element: string;
+  elementSymbol: string;
+  elementColor: string;
+  dates: string;
+}
+
+function getZodiac(dateStr: string): ZodiacInfo {
+  const d = new Date(dateStr);
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+
+  if ((month === 3 && day >= 21) || (month === 4 && day <= 19))
+    return { sign: 'Овен', symbol: '♈', element: 'Огонь', elementSymbol: '🜂', elementColor: 'text-red-400', dates: '21 мар — 19 апр' };
+  if ((month === 4 && day >= 20) || (month === 5 && day <= 20))
+    return { sign: 'Телец', symbol: '♉', element: 'Земля', elementSymbol: '🜄', elementColor: 'text-green-400', dates: '20 апр — 20 май' };
+  if ((month === 5 && day >= 21) || (month === 6 && day <= 20))
+    return { sign: 'Близнецы', symbol: '♊', element: 'Воздух', elementSymbol: '🜁', elementColor: 'text-sky-400', dates: '21 май — 20 июн' };
+  if ((month === 6 && day >= 21) || (month === 7 && day <= 22))
+    return { sign: 'Рак', symbol: '♋', element: 'Вода', elementSymbol: '🜃', elementColor: 'text-blue-400', dates: '21 июн — 22 июл' };
+  if ((month === 7 && day >= 23) || (month === 8 && day <= 22))
+    return { sign: 'Лев', symbol: '♌', element: 'Огонь', elementSymbol: '🜂', elementColor: 'text-red-400', dates: '23 июл — 22 авг' };
+  if ((month === 8 && day >= 23) || (month === 9 && day <= 22))
+    return { sign: 'Дева', symbol: '♍', element: 'Земля', elementSymbol: '🜄', elementColor: 'text-green-400', dates: '23 авг — 22 сен' };
+  if ((month === 9 && day >= 23) || (month === 10 && day <= 22))
+    return { sign: 'Весы', symbol: '♎', element: 'Воздух', elementSymbol: '🜁', elementColor: 'text-sky-400', dates: '23 сен — 22 окт' };
+  if ((month === 10 && day >= 23) || (month === 11 && day <= 21))
+    return { sign: 'Скорпион', symbol: '♏', element: 'Вода', elementSymbol: '🜃', elementColor: 'text-blue-400', dates: '23 окт — 21 ноя' };
+  if ((month === 11 && day >= 22) || (month === 12 && day <= 21))
+    return { sign: 'Стрелец', symbol: '♐', element: 'Огонь', elementSymbol: '🜂', elementColor: 'text-red-400', dates: '22 ноя — 21 дек' };
+  if ((month === 12 && day >= 22) || (month === 1 && day <= 19))
+    return { sign: 'Козерог', symbol: '♑', element: 'Земля', elementSymbol: '🜄', elementColor: 'text-green-400', dates: '22 дек — 19 янв' };
+  if ((month === 1 && day >= 20) || (month === 2 && day <= 18))
+    return { sign: 'Водолей', symbol: '♒', element: 'Воздух', elementSymbol: '🜁', elementColor: 'text-sky-400', dates: '20 янв — 18 фев' };
+  return { sign: 'Рыбы', symbol: '♓', element: 'Вода', elementSymbol: '🜃', elementColor: 'text-blue-400', dates: '19 фев — 20 мар' };
+}
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 function generateCode(name: string, date: string, time: string, intention: string): string {
   const cleaned = (name + date + time + intention).replace(/\s/g, '').toUpperCase();
   const hash = cleaned.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
@@ -13,14 +57,14 @@ function generateCode(name: string, date: string, time: string, intention: strin
   return `${prefix}-${suffix}-${num}`;
 }
 
-function getSymbolsByDate(date: string, time: string): string[] {
-  if (!date) return symbols.slice(0, 3);
+function getMainSymbol(date: string, time: string): string {
+  if (!date) return '✦';
   const d = new Date(date);
   const month = d.getMonth();
   const day = d.getDate();
   const hour = time ? parseInt(time.split(':')[0], 10) : 0;
   const idx = (month + day + hour) % symbols.length;
-  return [symbols[idx], symbols[(idx + 4) % symbols.length], symbols[(idx + 8) % symbols.length]];
+  return symbols[idx];
 }
 
 export default function GeneratorSection() {
@@ -28,15 +72,20 @@ export default function GeneratorSection() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [intention, setIntention] = useState('');
-  const [generated, setGenerated] = useState<null | { code: string; symbols: string[] }>(null);
-  const [saved, setSaved] = useState<Array<{ code: string; name: string; symbols: string[] }>>([]);
+  const [generated, setGenerated] = useState<null | {
+    code: string;
+    mainSymbol: string;
+    zodiac: ZodiacInfo;
+  }>(null);
+  const [saved, setSaved] = useState<Array<{ code: string; name: string; sign: string }>>([]);
   const [step, setStep] = useState(1);
 
   const handleGenerate = useCallback(() => {
     if (!name || !date || !intention) return;
     const code = generateCode(name, date, time, intention);
-    const syms = getSymbolsByDate(date, time);
-    setGenerated({ code, symbols: syms });
+    const mainSymbol = getMainSymbol(date, time);
+    const zodiac = getZodiac(date);
+    setGenerated({ code, mainSymbol, zodiac });
     setStep(3);
   }, [name, date, time, intention]);
 
@@ -45,7 +94,7 @@ export default function GeneratorSection() {
     setSaved((prev) => {
       const exists = prev.find((s) => s.code === generated.code);
       if (exists) return prev;
-      return [...prev, { code: generated.code, name, symbols: generated.symbols }];
+      return [...prev, { code: generated.code, name, sign: generated.zodiac.symbol }];
     });
   }, [generated, name]);
 
@@ -170,47 +219,121 @@ export default function GeneratorSection() {
             </div>
           </div>
         ) : (
-          <div className="card-mystic rounded-xl p-8 md:p-10 text-center animate-scale-in">
-            <div className="mb-6">
-              <span className="font-body text-[10px] tracking-[0.4em] uppercase text-gold/60">
-                Ваш амулет готов
+          <div className="card-mystic rounded-xl overflow-hidden animate-scale-in">
+
+            {/* Шапка амулета */}
+            <div className="bg-gradient-to-b from-obsidian to-midnight px-8 pt-10 pb-6 text-center border-b border-gold/10">
+              <span className="font-body text-[10px] tracking-[0.4em] uppercase text-gold/50">
+                Персональный амулет
               </span>
-            </div>
-
-            <div className="relative inline-flex items-center justify-center mb-8">
-              <div className="w-36 h-36 rounded-full border border-gold/30 flex items-center justify-center glow-gold animate-pulse-glow relative">
-                <div className="absolute inset-3 rounded-full border border-gold/20 animate-rotate-slow" />
-                <span className="text-6xl relative z-10">{generated.symbols[0]}</span>
+              <div className="font-display text-3xl text-foreground mt-1">
+                {name} · <span className="text-gold">{intention}</span>
               </div>
-              <span className="absolute -top-3 -right-3 text-2xl animate-float">{generated.symbols[1]}</span>
-              <span className="absolute -bottom-3 -left-3 text-2xl animate-float" style={{ animationDelay: '1s' }}>{generated.symbols[2]}</span>
             </div>
 
-            <div className="font-display text-3xl text-foreground mb-2">
-              Амулет <span className="text-gold">{intention}</span>
+            {/* Центральный символ */}
+            <div className="flex flex-col items-center py-10 px-8 bg-gradient-to-b from-midnight to-background/50">
+              <div className="relative">
+                {/* Внешнее кольцо */}
+                <div className="w-52 h-52 rounded-full border border-gold/15 flex items-center justify-center relative animate-rotate-slow">
+                  {/* Деления на кольце */}
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 rounded-full bg-gold/30"
+                      style={{
+                        top: '50%',
+                        left: '50%',
+                        transform: `rotate(${i * 30}deg) translateY(-102px)`,
+                        transformOrigin: '0 0',
+                      }}
+                    />
+                  ))}
+                </div>
+                {/* Среднее кольцо */}
+                <div className="absolute inset-4 rounded-full border border-gold/25 flex items-center justify-center" style={{ animationDirection: 'reverse', animationDuration: '25s' }} />
+                {/* Внутренний круг */}
+                <div className="absolute inset-8 rounded-full border border-gold/40 glow-gold flex items-center justify-center animate-pulse-glow">
+                  <span className="text-6xl">{generated.mainSymbol}</span>
+                </div>
+                {/* Знак зодиака — сверху */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-obsidian border border-gold/40 flex items-center justify-center">
+                  <span className="text-lg text-gold">{generated.zodiac.symbol}</span>
+                </div>
+                {/* Символ стихии — снизу */}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-obsidian border border-gold/40 flex items-center justify-center">
+                  <span className={`text-base ${generated.zodiac.elementColor}`}>{generated.zodiac.elementSymbol}</span>
+                </div>
+              </div>
             </div>
-            <p className="font-body text-sm text-foreground/50 mb-6">Создан для: {name}</p>
 
-            <div className="bg-obsidian rounded-lg px-6 py-4 mb-6 inline-block glow-gold-sm">
-              <div className="font-body text-[9px] tracking-widest uppercase text-gold/50 mb-1">Уникальный код</div>
-              <div className="font-body text-lg tracking-[0.3em] text-gold font-medium">{generated.code}</div>
-            </div>
+            {/* Данные амулета */}
+            <div className="px-8 pb-8 space-y-3">
+              {/* Строка: дата и время */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-obsidian rounded-lg px-4 py-3">
+                  <div className="font-body text-[9px] tracking-widest uppercase text-gold/40 mb-1">Дата рождения</div>
+                  <div className="font-display text-base text-foreground">{formatDate(date)}</div>
+                </div>
+                <div className="bg-obsidian rounded-lg px-4 py-3">
+                  <div className="font-body text-[9px] tracking-widest uppercase text-gold/40 mb-1">Время рождения</div>
+                  <div className="font-display text-base text-foreground">
+                    {time ? time : <span className="text-foreground/30 text-sm">не указано</span>}
+                  </div>
+                </div>
+              </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-4">
-              <button
-                onClick={handleSave}
-                className="btn-gold px-6 py-3 rounded text-xs flex items-center gap-2 justify-center"
-              >
-                <Icon name="Bookmark" size={14} />
-                Сохранить
-              </button>
-              <button
-                onClick={handleReset}
-                className="btn-outline-gold px-6 py-3 rounded text-xs flex items-center gap-2 justify-center"
-              >
-                <Icon name="RefreshCw" size={14} />
-                Новый амулет
-              </button>
+              {/* Строка: знак зодиака и стихия */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-obsidian rounded-lg px-4 py-3 flex items-center gap-3">
+                  <span className="text-2xl text-gold">{generated.zodiac.symbol}</span>
+                  <div>
+                    <div className="font-body text-[9px] tracking-widest uppercase text-gold/40 mb-0.5">Знак зодиака</div>
+                    <div className="font-display text-base text-foreground">{generated.zodiac.sign}</div>
+                    <div className="font-body text-[9px] text-foreground/30">{generated.zodiac.dates}</div>
+                  </div>
+                </div>
+                <div className="bg-obsidian rounded-lg px-4 py-3 flex items-center gap-3">
+                  <span className={`text-2xl ${generated.zodiac.elementColor}`}>{generated.zodiac.elementSymbol}</span>
+                  <div>
+                    <div className="font-body text-[9px] tracking-widest uppercase text-gold/40 mb-0.5">Стихия</div>
+                    <div className={`font-display text-base ${generated.zodiac.elementColor}`}>{generated.zodiac.element}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Уникальный код */}
+              <div className="bg-obsidian rounded-lg px-5 py-4 flex items-center justify-between glow-gold-sm">
+                <div>
+                  <div className="font-body text-[9px] tracking-widest uppercase text-gold/40 mb-1">Уникальный код</div>
+                  <div className="font-body text-lg tracking-[0.25em] text-gold font-medium">{generated.code}</div>
+                </div>
+                <button
+                  onClick={() => navigator.clipboard?.writeText(generated.code)}
+                  className="text-gold/30 hover:text-gold transition-colors"
+                  title="Скопировать"
+                >
+                  <Icon name="Copy" size={16} />
+                </button>
+              </div>
+
+              {/* Кнопки */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSave}
+                  className="btn-gold flex-1 py-3 rounded text-xs flex items-center gap-2 justify-center"
+                >
+                  <Icon name="Bookmark" size={14} />
+                  Сохранить
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="btn-outline-gold flex-1 py-3 rounded text-xs flex items-center gap-2 justify-center"
+                >
+                  <Icon name="RefreshCw" size={14} />
+                  Новый амулет
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -224,7 +347,7 @@ export default function GeneratorSection() {
               {saved.map((s) => (
                 <div key={s.code} className="card-mystic rounded-lg px-5 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <span className="text-2xl">{s.symbols[0]}</span>
+                    <span className="text-2xl text-gold">{s.sign}</span>
                     <div>
                       <div className="font-body text-xs text-foreground/70">{s.name}</div>
                       <div className="font-body text-[10px] tracking-widest text-gold/60">{s.code}</div>
