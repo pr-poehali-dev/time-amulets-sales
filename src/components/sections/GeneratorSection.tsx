@@ -248,6 +248,17 @@ function AmuletSVG({ name, date, time, zodiac, element }: {
   );
 }
 
+const zodiacImages: Record<string, string> = {
+  'Овен':     'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/85362f30-29ce-4216-aa41-b855f08a1e1a.png',
+  'Телец':    'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/5980354d-837b-49f8-ab07-6fb5a4a893a1.png',
+  'Рыбы':     'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/5d54a863-759f-4fa8-ad6d-225514f29443.png',
+  'Лев':      'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/8275b9cd-9654-4f73-8481-142ccb1aa274.png',
+  'Рак':      'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/b1b1016a-79b4-4a17-86d7-408bc0e2b0a2.png',
+  'Стрелец':  'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/7ece808e-774e-4000-b0f8-4403e2f8b823.png',
+  'Козерог':  'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/f16988d7-936d-44c1-8a56-f8121725f295.png',
+  'Скорпион': 'https://cdn.poehali.dev/projects/9686ad9d-7d7b-4e6a-bc50-712b3d7ff355/bucket/7ece808e-774e-4000-b0f8-4403e2f8b823.png',
+};
+
 export default function GeneratorSection() {
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
@@ -428,6 +439,19 @@ export default function GeneratorSection() {
                 />
               </div>
             </div>
+
+            {/* Глиттер-изображение знака зодиака */}
+            {zodiacImages[generated.zodiac.sign] && (
+              <div className="flex flex-col items-center justify-center bg-[#08080f] pb-6 px-4">
+                <div className="w-px h-6 bg-gold/20 mb-4" />
+                <span className="font-body text-[9px] tracking-[0.4em] uppercase text-gold/40 mb-4">Символ знака</span>
+                <img
+                  src={zodiacImages[generated.zodiac.sign]}
+                  alt={generated.zodiac.sign}
+                  className="w-48 h-48 object-contain opacity-90 drop-shadow-lg"
+                />
+              </div>
+            )}
 
             {/* Подсказка */}
             <div className="px-8 py-3 bg-obsidian/60 border-t border-gold/10 text-center">
