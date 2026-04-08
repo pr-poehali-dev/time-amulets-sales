@@ -1,28 +1,40 @@
-
+import { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import Navbar from '@/components/Navbar';
+import HomeSection from '@/components/sections/HomeSection';
+import ShopSection from '@/components/sections/ShopSection';
+import GeneratorSection from '@/components/sections/GeneratorSection';
+import AboutSection from '@/components/sections/AboutSection';
+import AccountSection from '@/components/sections/AccountSection';
+import ContactsSection from '@/components/sections/ContactsSection';
 
-const queryClient = new QueryClient();
+type Section = 'home' | 'shop' | 'generator' | 'about' | 'account' | 'contacts';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => {
+  const [activeSection, setActiveSection] = useState<Section>('home');
+
+  const navigate = (section: string) => {
+    setActiveSection(section as Section);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
     <TooltipProvider>
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <div className="min-h-screen bg-background scrollbar-mystic">
+        <Navbar activeSection={activeSection} onNavigate={navigate} />
+        <main>
+          {activeSection === 'home' && <HomeSection onNavigate={navigate} />}
+          {activeSection === 'shop' && <ShopSection onNavigate={navigate} />}
+          {activeSection === 'generator' && <GeneratorSection />}
+          {activeSection === 'about' && <AboutSection />}
+          {activeSection === 'account' && <AccountSection />}
+          {activeSection === 'contacts' && <ContactsSection />}
+        </main>
+      </div>
     </TooltipProvider>
-  </QueryClientProvider>
-);
+  );
+};
 
 export default App;
