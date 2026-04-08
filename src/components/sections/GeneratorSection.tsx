@@ -4,8 +4,8 @@ import Icon from '@/components/ui/icon';
 const symbols = ['☽', '☀', '⛤', '∞', 'ᛉ', 'ᚠ', 'ᛏ', '✦', '⊕', '⊗', '⊙', '✧'];
 const intentions = ['Защита', 'Удача', 'Любовь', 'Здоровье', 'Мудрость', 'Богатство', 'Гармония', 'Сила'];
 
-function generateCode(name: string, date: string, intention: string): string {
-  const cleaned = (name + date + intention).replace(/\s/g, '').toUpperCase();
+function generateCode(name: string, date: string, time: string, intention: string): string {
+  const cleaned = (name + date + time + intention).replace(/\s/g, '').toUpperCase();
   const hash = cleaned.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const prefix = 'ARK';
   const num = ((hash * 7919) % 99999).toString().padStart(5, '0');
@@ -13,18 +13,20 @@ function generateCode(name: string, date: string, intention: string): string {
   return `${prefix}-${suffix}-${num}`;
 }
 
-function getSymbolsByDate(date: string): string[] {
+function getSymbolsByDate(date: string, time: string): string[] {
   if (!date) return symbols.slice(0, 3);
   const d = new Date(date);
   const month = d.getMonth();
   const day = d.getDate();
-  const idx = (month + day) % symbols.length;
+  const hour = time ? parseInt(time.split(':')[0], 10) : 0;
+  const idx = (month + day + hour) % symbols.length;
   return [symbols[idx], symbols[(idx + 4) % symbols.length], symbols[(idx + 8) % symbols.length]];
 }
 
 export default function GeneratorSection() {
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [intention, setIntention] = useState('');
   const [generated, setGenerated] = useState<null | { code: string; symbols: string[] }>(null);
   const [saved, setSaved] = useState<Array<{ code: string; name: string; symbols: string[] }>>([]);
@@ -32,11 +34,11 @@ export default function GeneratorSection() {
 
   const handleGenerate = useCallback(() => {
     if (!name || !date || !intention) return;
-    const code = generateCode(name, date, intention);
-    const syms = getSymbolsByDate(date);
+    const code = generateCode(name, date, time, intention);
+    const syms = getSymbolsByDate(date, time);
     setGenerated({ code, symbols: syms });
     setStep(3);
-  }, [name, date, intention]);
+  }, [name, date, time, intention]);
 
   const handleSave = useCallback(() => {
     if (!generated) return;
@@ -52,6 +54,7 @@ export default function GeneratorSection() {
     setStep(1);
     setName('');
     setDate('');
+    setTime('');
     setIntention('');
   }, []);
 
@@ -104,17 +107,32 @@ export default function GeneratorSection() {
                 />
               </div>
 
-              <div>
-                <label className="font-body text-[10px] tracking-widest uppercase text-gold/70 block mb-2">
-                  Дата рождения
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => { setDate(e.target.value); if (e.target.value) setStep(Math.max(step, 2)); }}
-                  className="mystic-input w-full px-4 py-3 rounded text-sm font-body"
-                  style={{ colorScheme: 'dark' }}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-body text-[10px] tracking-widest uppercase text-gold/70 block mb-2">
+                    Дата рождения
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => { setDate(e.target.value); if (e.target.value) setStep(Math.max(step, 2)); }}
+                    className="mystic-input w-full px-4 py-3 rounded text-sm font-body"
+                    style={{ colorScheme: 'dark' }}
+                  />
+                </div>
+                <div>
+                  <label className="font-body text-[10px] tracking-widest uppercase text-gold/70 block mb-2">
+                    Время рождения
+                    <span className="text-gold/30 normal-case tracking-normal ml-1">(если знаете)</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="mystic-input w-full px-4 py-3 rounded text-sm font-body"
+                    style={{ colorScheme: 'dark' }}
+                  />
+                </div>
               </div>
 
               <div>
